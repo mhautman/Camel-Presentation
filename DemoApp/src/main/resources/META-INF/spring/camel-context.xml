@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context-->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+  <camelContext xmlns="http://camel.apache.org/schema/spring">
+    <!-- here is a sample which processes the input files
+         (leaving them in place - see the 'noop' flag)
+         then performs content based routing on the message using XPath -->
+    <route>
+      <from uri="file:src/data?noop=true"/>
+      <split>
+         <xpath>/pizzas/pizza</xpath>
+          <setHeader headerName="pizzaName">
+              <xpath>/pizza/name/text()</xpath>
+          </setHeader>
+          <setHeader headerName="CamelFileName">
+              <simple>${in.header.pizzaName}.xml</simple>
+          </setHeader>
+          <choice>
+              <when>
+                  <xpath>/pizza/destination = 'IntoData'</xpath>
+                  <log message="IntoData"/>
+                  <to uri="file:target/pizzas/IntoData"/>
+              </when>
+              <when>
+                  <xpath>/pizza/destination = '7Dots'</xpath>
+                  <log message="7Dots"/>
+                  <to uri="file:target/pizzas/7Dots"/>
+              </when>
+              <otherwise>
+                  <log message="iAdvise"/>
+                  <to uri="file:target/pizzas/iAdvise"/>
+              </otherwise>
+          </choice>
+      </split>
+    </route>
+  </camelContext>
+</beans>
